@@ -663,7 +663,6 @@ function printAllViews() {
                     padding: 4px 2px !important;
                     border: 1px solid #000 !important;
                     font-size: 14px !important;
-                    text-align: right !important;
                     word-wrap: break-word !important;
                     line-height: 1.3 !important;
                     color: #000 !important;
@@ -746,4 +745,5 @@ function printCurrentView() {
 
 function printOptimized() {
     printAllViews(); // Redirect to comprehensive print
+
 }
