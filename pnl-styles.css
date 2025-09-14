@@ -1,0 +1,545 @@
+/* pnl-styles.css - PnL Data Specific Styles with Cumulative Chart */
+
+.pnl-container {
+    display: none;
+}
+
+.pnl-container.active {
+    display: block;
+}
+
+.pnl-strategies-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+}
+
+/* NEW: Cumulative PnL Chart Styles */
+.cumulative-chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.cumulative-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.cumulative-chart-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2d3748;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.chart-toggle {
+    padding: 6px 12px;
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.chart-toggle.active {
+    background: linear-gradient(135deg, #4299e1, #3182ce);
+    color: white;
+    border-color: transparent;
+}
+
+.chart-canvas-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 10px;
+}
+
+#cumulativeChart {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: crosshair;
+    width: 100%;
+    height: 100%;
+}
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 15px;
+    padding: 10px;
+    background: #f7fafc;
+    border-radius: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85em;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.legend-item:hover {
+    background: rgba(66, 153, 225, 0.1);
+}
+
+.legend-color {
+    width: 16px;
+    height: 3px;
+    border-radius: 2px;
+}
+
+.legend-item.disabled {
+    opacity: 0.5;
+}
+
+.legend-item.disabled .legend-color {
+    background: #cbd5e0 !important;
+}
+
+.chart-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+    white-space: nowrap;
+}
+
+/* EXISTING: Original PnL Table Styles */
+.pnl-strategy-container {
+    margin: 4px 0;
+    background: white;
+    border-radius: 12px;
+    padding: 12px 20px 20px 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.pnl-strategy-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.pnl-strategy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.pnl-strategy-title-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.pnl-strategy-title {
+    font-size: 1.0em;
+    font-weight: 600;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.pnl-strategy-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.pnl-strategy-position {
+    background: linear-gradient(135deg, #805ad5, #6b46c1);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9em;
+}
+
+/* Button styles - matching your working implementation */
+.btn-move {
+    padding: 4px 4px;
+    background: linear-gradient(135deg, #4299e1, #3182ce);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    line-height: 1;
+}
+
+.btn-move:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+    background: linear-gradient(135deg, #3182ce, #2b6cb0);
+}
+
+.btn-move:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(66, 153, 225, 0.3);
+}
+
+.btn-move:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #cbd5e0;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-remove {
+    padding: 4px 8px;
+    background: linear-gradient(135deg, #f56565, #e53e3e);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 11px;
+    height: 25px;
+    transition: all 0.3s ease;
+    min-width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-remove:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+    background: linear-gradient(135deg, #e53e3e, #c53030);
+}
+
+.btn-remove:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(245, 101, 101, 0.3);
+}
+
+.pnl-main-content {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.pnl-table-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    contain: layout;
+}
+
+.pnl-table-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.pnl-table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4px 0;
+    font-size: 12px;
+    min-width: 1100px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.pnl-table thead th {
+    background: linear-gradient(180deg, #a0aec0 0%, #718096 100%);
+    color: white;
+    padding: 8px 8px;
+    text-align: center;
+    font-weight: 700;
+    border-bottom: 1px solid #718096;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 0.9em;
+    min-width: 60px;
+}
+
+.pnl-table tbody td {
+    padding: 3px 4px;
+    text-align: right;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 500;
+}
+
+.pnl-table tbody tr:nth-child(even) {
+    background-color: #f7fafc;
+}
+
+.pnl-table tbody tr:hover {
+    background: linear-gradient(to right, #edf2f7, #e2e8f0);
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+}
+
+.pnl-year-col {
+    background: #a0aec0 !important; /* Simple light gray background */
+    color: white !important; 
+    font-weight: 700;
+    text-align: center !important;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    padding: 8px 4px !important;
+    border-right: 0px solid #e2e8f0; /* Add a subtle border to separate from data */
+    /* Remove all shadows and gradients */
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Dynamic year total colors - will be set via JavaScript */
+.pnl-yearly-total {
+    font-weight: 700;
+    text-align: center;
+}
+
+.pnl-yearly-total.positive {
+    background: #e6f3ff !important;
+    color: green !important;
+}
+
+.pnl-yearly-total.negative {
+    background: #e6f3ff !important;
+    color: red !important;
+}
+
+.pnl-yearly-avg {
+    background: #e6f3ff !important;
+    font-weight: 600;
+}
+
+.pnl-positive {
+    color: green !important;
+    font-weight: 600;
+}
+
+.pnl-negative {
+    color: red !important;
+    font-weight: 700;
+}
+
+/* Dynamic positive/negative count colors - will be set via JavaScript */
+.pnl-positive-count,
+.pnl-negative-count {
+    color: #2d3748;
+    font-weight: 700;
+    text-align: center;
+}
+
+.pnl-average-row td {
+    background: linear-gradient(#adb5bd 0%, #adb5bd 100%) !important;
+    color: black !important;
+    font-weight: 700;
+    border-top: 2px solid #adb5bd;
+    padding: 4px 4px !important;
+    box-shadow: none !important;
+}
+
+.pnl-metrics-panel {
+    flex: 0 0 220px;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 12px;
+    padding: 8px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    height: fit-content;
+}
+
+.pnl-metrics-title {
+    display: none !important;
+}
+
+/* Updated: Single box for all metrics */
+.pnl-metrics-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding: 6px;
+}
+
+/* Updated: Individual metric items without separate boxes */
+.pnl-metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    transition: none;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Remove border from last item */
+.pnl-metric-item:last-child {
+    border-bottom: none;
+}
+
+/* Remove hover effects for individual items */
+.pnl-metric-item:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.pnl-metric-label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.85em;
+}
+
+.pnl-metric-value {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 0.8em;
+}
+
+.pnl-empty-state {
+    text-align: center;
+    color: #718096;
+    font-style: italic;
+    padding: 60px 40px;
+    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    border-radius: 12px;
+    border: 2px dashed #cbd5e0;
+}
+
+.pnl-empty-state h3 {
+    color: #2d3748;
+    margin-bottom: 10px;
+    font-size: 1.4em;
+}
+
+.pnl-empty-state pre {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.8em;
+    color: #4a5568;
+}
+
+@media (max-width: 768px) {
+    .pnl-main-content {
+        flex-direction: column;
+    }
+    
+    .pnl-metrics-panel {
+        flex: none;
+        width: 100%;
+        margin-top: 15px;
+    }
+    
+    .pnl-metrics-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .pnl-metric-item {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+        padding: 5px 0;
+    }
+    
+    .pnl-metric-label {
+        font-size: 0.75em;
+        margin-bottom: 0;
+    }
+    
+    .pnl-metric-value {
+        font-size: 0.85em;
+    }
+    
+    .pnl-table {
+        font-size: 11px;
+    }
+    
+    .pnl-strategy-controls {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .btn-move {
+        font-size: 12px;
+        min-width: 20px;
+        height: 20px;
+        padding: 2px;
+    }
+    
+    .btn-remove {
+        font-size: 10px;
+        padding: 3px 6px;
+        height: 20px;
+        min-width: 50px;
+    }
+
+    .chart-canvas-container {
+        height: 300px;
+    }
+
+    .cumulative-chart-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .chart-legend {
+        flex-direction: column;
+        gap: 8px;
+    }
+}

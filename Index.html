@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amibroker Backtest Report Comparison Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="pnl-styles.css">
+    <style>
+        /* Additional styles for folder selection functionality */
+        .load-method-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+            padding: 4px;
+        }
+
+        .load-method-tab {
+            flex: 1;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #718096;
+        }
+
+        .load-method-tab.active {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+        }
+
+        .load-method-content {
+            display: none;
+        }
+
+        .load-method-content.active {
+            display: block;
+        }
+
+        .folder-upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .folder-upload-area:hover {
+            border-color: #4299e1;
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+        }
+
+        .folder-upload-area.dragover {
+            border-color: #4299e1;
+            background: #edf2f7;
+            transform: scale(1.02);
+        }
+
+        .folder-icon {
+            font-size: 2.5em;
+            color: #4299e1;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            color: #4a5568;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            color: #718096;
+            font-size: 0.8em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .processing-status {
+            background: #e6fffa;
+            border: 1px solid #38b2ac;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .processing-status.show {
+            display: block;
+        }
+
+        .processing-title {
+            font-weight: 600;
+            color: #2c7a7b;
+            margin-bottom: 8px;
+        }
+
+        .file-list {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 0.8em;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            color: #4a5568;
+        }
+
+        .file-status {
+            font-weight: 600;
+        }
+
+        .file-status.success {
+            color: #38a169;
+        }
+
+        .file-status.error {
+            color: #e53e3e;
+        }
+
+        /* Strategy Review Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .strategy-review-modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #718096;
+            padding: 4px;
+        }
+
+        .close-btn:hover {
+            color: #e53e3e;
+        }
+
+        .strategy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .strategy-item {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-item:hover {
+            border-color: #4299e1;
+            background: #edf2f7;
+        }
+
+        .strategy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .strategy-info {
+            flex: 1;
+        }
+
+        .strategy-name-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-name-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .strategy-details {
+            font-size: 0.8em;
+            color: #718096;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .btn-modal {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-cancel {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-cancel:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+        }
+
+        .modal-summary {
+            background: #e6fffa;
+            border: 1px solid #38b2ac;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary-text {
+            color: #2c7a7b;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Amibroker Backtest Report Comparison Tool</h1>
+            <div class="header-actions">
+                <button class="header-btn" onclick="printAllViews()" title="Print all views (Ctrl+P)">
+                    🖨️ Print All
+                </button>
+                <button class="header-btn" onclick="saveSession()" title="Save Session (Ctrl+S)">
+                    💾 Save
+                </button>
+                <button class="header-btn" onclick="loadSession()" title="Load Session (Ctrl+O)">
+                    📂 Load
+                </button>
+                <div class="header-badge">Professional Edition</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="input-section">
+                    <h3 class="section-title">Add New Report</h3>
+                    
+                    <!-- Loading method tabs -->
+                    <div class="load-method-tabs">
+                        <button class="load-method-tab active" onclick="switchLoadMethod('folder')">📁 Load Folder</button>
+                        <button class="load-method-tab" onclick="switchLoadMethod('manual')">✏️ Manual Input</button>
+                    </div>
+
+                    <!-- Folder loading section -->
+                    <div id="folderMethod" class="load-method-content active">
+                        <div class="folder-upload-area" onclick="selectFolder()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                            <div class="folder-icon">📁</div>
+                            <div class="upload-text">Click to select Amibroker report folder</div>
+                            <div class="upload-subtext">Or drag and drop report folder all html files here</div>
+                        </div>
+                        <div style="font-size: 0.8em; color: #e53e3e; text-align: center; margin-top: 8px; font-style: italic;">
+                            Note: File selection from C drive may be restricted. Please drag and drop files directly into this area.
+                        </div>
+                        <input type="file" id="folderInput" class="file-input" multiple accept=".html,.htm" onchange="handleFiles(this.files)">
+                        <input type="file" id="directoryInput" class="file-input" webkitdirectory onchange="handleDirectory(this.files)">
+                        
+                        <div id="processingStatus" class="processing-status">
+                            <div class="processing-title">Processing Files...</div>
+                            <div id="fileList" class="file-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Existing manual input section -->
+                    <div id="manualMethod" class="load-method-content">
+                        <div class="input-group">
+                            <label for="reportName">Report Name</label>
+                            <input type="text" id="reportName" placeholder="Enter strategy name...">
+                        </div>
+                        <div class="input-group">
+                            <label for="reportData">Backtest Data</label>
+                            <textarea id="reportData" placeholder="Paste your complete backtest statistics here..."></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="pnlData">PnL Data (Optional)</label>
+                            <textarea id="pnlData" placeholder="Paste your PnL data here (format: **2024**Jan_ValueFeb_Value...)**Total"></textarea>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="addReport()">Add Report</button>
+                            <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="added-reports" id="addedReports">
+                    <h3>
+                        Reports Library
+                        <span class="report-count-badge" id="reportCount">0</span>
+                    </h3>
+                    <div class="report-list" id="reportList"></div>
+                </div>
+            </div>
+
+            <div id="emptyState" class="empty-state">
+                <div>
+                    <div class="empty-state-icon">📈</div>
+                    <h2>Welcome to Backtest Comparison</h2>
+                    <p>Select an Amibroker report folder or add reports manually to begin analysis</p>
+                </div>
+            </div>
+
+            <div class="comparison-section" id="comparisonSection">
+                <div class="view-tabs-container">
+                    <div class="view-tabs" id="viewTabs">
+                        <div class="view-tab active" onclick="showView('table')">📋 Comparison Table</div>
+                        <div class="view-tab" onclick="showView('charts')">📊 Visual Charts</div>
+                        <div class="view-tab" onclick="showView('pnl')">📈 PnL Analysis</div>
+                        <div class="view-tab" onclick="showView('symbols')">🏷️ Symbols</div>
+                        <div class="view-tab" onclick="showView('formula')">📝 Formula</div>
+                        <div class="view-tab" onclick="showView('settings')">⚙️ Settings</div>
+                    </div>
+                </div>
+                <div id="tableContainer"></div>
+                <div id="chartsContainer" class="charts-container"></div>
+                <div id="pnlContainer" class="pnl-container"></div>
+                <div id="symbolsContainer" class="symbols-container"></div>
+                <div id="formulaContainer" class="formula-container"></div>
+                <div id="settingsContainer" class="settings-container"></div>
+            </div>
+        </div>
+
+        <!-- Strategy Review Modal -->
+        <div id="strategyModal" class="modal-overlay">
+            <div class="strategy-review-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Review & Name Your Strategies</h2>
+                    <button class="close-btn" onclick="closeStrategyModal()">&times;</button>
+                </div>
+
+                <div id="modalSummary" class="modal-summary">
+                    <div class="summary-text">Found <span id="strategyCount">0</span> strategies. Review and customize names below:</div>
+                </div>
+
+                <div id="strategyList" class="strategy-list">
+                    <!-- Strategy items will be populated here -->
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-modal btn-cancel" onclick="closeStrategyModal()">Cancel</button>
+                    <button class="btn-modal btn-confirm" onclick="confirmStrategies()">Add All Strategies</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for loading sessions -->
+    <input type="file" id="loadFileInput" class="hidden-file-input" accept=".json" onchange="handleLoadFile(event)">
+
+    <!-- Load JavaScript files in order -->
+    <script src="utils.js"></script>
+    <script src="report-parser.js"></script>
+    <script src="pnl-handler.js"></script>
+    <script src="chart-handler.js"></script>
+    <script src="print-handler.js"></script>
+    <script src="sample-data.js"></script>
+    <script src="main.js"></script>
+    
+    <script>
+        // Global variable to store pending strategies for review
+        let pendingStrategies = [];
+
+        // FIXED: Extract settings data from settings.html
+        function extractSettingsFromHTML(htmlContent) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                
+                const settings = {
+                    basic: {},
+                    parameters: {}
+                };
+
+                console.log('Extracting settings from HTML...');
+
+                // Method 1: Look for tables with settings
+                const tables = doc.querySelectorAll('table');
+                
+                tables.forEach((table, tableIndex) => {
+                    console.log('Processing table ' + (tableIndex + 1));
+                    const rows = table.querySelectorAll('tr');
+                    
+                    for (let i = 0; i < rows.length; i++) {
+                        const row = rows[i];
+                        const cells = row.querySelectorAll('th, td');
+                        
+                        // FIXED: Handle rows with multiple setting pairs, skipping empty cells
+                        for (let j = 0; j < cells.length - 1; j++) {
+                            const labelCell = cells[j];
+                            if (!labelCell) continue;
+                            
+                            const label = labelCell.textContent.trim();
+                            
+                            // Skip if this cell is empty or not a label
+                            if (!label || label === '&nbsp;' || label === '') continue;
+                            
+                            // Look for the next non-empty cell as the value
+                            for (let k = j + 1; k < cells.length; k++) {
+                                const valueCell = cells[k];
+                                if (!valueCell) continue;
+                                
+                                const value = valueCell.textContent.trim();
+                                
+                                if (value && value !== '&nbsp;' && value !== '') {
+                                    console.log('Found setting: "' + label + '" = "' + value + '"');
+
+
+    
+                                    
+                                    // Skip header rows, empty values, and spacing cells
+                                    if (!label.toLowerCase().includes('setting') &&
+                                        !label.toLowerCase().includes('parameter') &&
+                                        !label.toLowerCase().includes('name') &&
+                                        !value.toLowerCase().includes('value') &&
+                                        label !== 'Name' && value !== 'Value') {
+
+    					// FIXED: Handle duplicate setting names by making them unique
+    					let uniqueLabel = label;
+					    if (settings.basic[label] || settings.parameters[label]) {
+ 					       // If this label already exists, make it unique
+					        if (value === '-') {
+					            uniqueLabel = label + ' (Exclude)';
+ 					           // Rename the existing one to Include
+					        if (settings.basic[label]) {
+					             settings.basic[label + ' (Include)'] = settings.basic[label];
+					             delete settings.basic[label];
+ 					        }
+					     } else {
+					         uniqueLabel = label + ' (Include)';
+					     }
+ 					}
+                                        
+                                        // Determine if it's a basic setting or parameter
+                                        if (label.toLowerCase().includes('param') || 
+                                            label.toLowerCase().includes('variable') ||
+                                            (!isNaN(parseFloat(value)) && !value.includes('%') && !value.includes('$') && !value.includes('minute') && !value.includes('/'))) {
+                                            settings.parameters[label] = value;
+                                        } else {
+                                            settings.basic[label] = value;
+                                        }
+                                    }
+                                    
+                                    // Move j to k so we don't reprocess this value cell
+                                    j = k;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Method 2: Fallback - look for definition lists or other structures
+                if (Object.keys(settings.basic).length === 0 && Object.keys(settings.parameters).length === 0) {
+                    const dls = doc.querySelectorAll('dl');
+                    dls.forEach(dl => {
+                        const dts = dl.querySelectorAll('dt');
+                        const dds = dl.querySelectorAll('dd');
+                        
+                        for (let i = 0; i < Math.min(dts.length, dds.length); i++) {
+                            const label = dts[i].textContent.trim();
+                            const value = dds[i].textContent.trim();
+                            
+                            if (label && value) {
+                                settings.basic[label] = value;
+                            }
+                        }
+                    });
+                }
+
+                // Method 3: Look for any key-value patterns in text
+                if (Object.keys(settings.basic).length === 0 && Object.keys(settings.parameters).length === 0) {
+                    const text = doc.body.textContent || '';
+                    const lines = text.split('\n');
+                    
+                    lines.forEach(line => {
+                        // Look for patterns like "Setting: Value" or "Setting = Value"
+                        const colonMatch = line.match(/^([^:]+):\s*(.+)$/);
+                        const equalsMatch = line.match(/^([^=]+)=\s*(.+)$/);
+                        
+                        if (colonMatch) {
+                            const key = colonMatch[1];
+                            const value = colonMatch[2];
+                            settings.basic[key.trim()] = value.trim();
+                        } else if (equalsMatch) {
+                            const key = equalsMatch[1];
+                            const value = equalsMatch[2];
+                            settings.parameters[key.trim()] = value.trim();
+                        }
+                    });
+                }
+
+                const basicCount = Object.keys(settings.basic).length;
+                const paramCount = Object.keys(settings.parameters).length;
+                
+                console.log('Extracted settings:', {
+                    basic: basicCount,
+                    parameters: paramCount,
+                    basicKeys: Object.keys(settings.basic),
+                    paramKeys: Object.keys(settings.parameters)
+                });
+
+                return (basicCount > 0 || paramCount > 0) ? settings : null;
+            } catch (error) {
+                console.error('Error extracting settings:', error);
+                return null;
+            }
+        }
+
+        // FIXED: Extract formula content from formula.html
+        function extractFormulaFromHTML(htmlContent) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                
+                // Look for <PRE> tag which typically contains the formula code
+                const preTag = doc.querySelector('pre');
+                if (preTag) {
+                    return preTag.textContent.trim();
+                }
+                
+                // Fallback: look for any script-like content
+                const scriptTags = doc.querySelectorAll('script');
+                for (const script of scriptTags) {
+                    if (script.textContent && script.textContent.trim()) {
+                        return script.textContent.trim();
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error extracting formula:', error);
+                return null;
+            }
+        }
+
+        // FIXED: Extract symbols list from symbols.html
+        function extractSymbolsFromHTML(htmlContent) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                
+                // Look for <PRE> tag which typically contains the symbols list
+                const preTag = doc.querySelector('pre');
+                if (preTag) {
+                    const symbolsText = preTag.textContent.trim();
+                    // Split by newlines and filter out empty lines
+                    const symbols = symbolsText.split('\n')
+                        .map(symbol => symbol.trim())
+                        .filter(symbol => symbol && symbol.length > 0);
+                    return symbols;
+                }
+                
+                return [];
+            } catch (error) {
+                console.error('Error extracting symbols:', error);
+                return [];
+            }
+        }
+
+        // Folder selection functionality
+        function switchLoadMethod(method) {
+            // Update tab states
+            document.querySelectorAll('.load-method-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Show/hide content
+            document.querySelectorAll('.load-method-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            if (method === 'folder') {
+                document.getElementById('folderMethod').classList.add('active');
+            } else {
+                document.getElementById('manualMethod').classList.add('active');
+            }
+        }
+
+        // Folder selection functionality
+        function selectFolder() {
+            // Try to use the modern File System Access API first
+            if ('showDirectoryPicker' in window) {
+                selectDirectoryModern();
+            } else {
+                // Fallback to multiple file selection
+                document.getElementById('folderInput').click();
+            }
+        }
+
+        // Modern directory picker (Chrome 86+)
+        async function selectDirectoryModern() {
+            try {
+                const dirHandle = await window.showDirectoryPicker();
+                const files = [];
+                
+                for await (const [name, fileHandle] of dirHandle) {
+                    if (fileHandle.kind === 'file' && (name.endsWith('.html') || name.endsWith('.htm'))) {
+                        const file = await fileHandle.getFile();
+                        files.push(file);
+                    }
+                }
+                
+                if (files.length > 0) {
+                    handleFiles(files);
+                } else {
+                    alert('No HTML files found in the selected directory.');
+                }
+            } catch (err) {
+                console.log('User cancelled directory selection or API not supported');
+                // Fallback to file input
+                // document.getElementById('folderInput').click();
+            }
+        }
+
+        // Handle drag and drop
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('dragover');
+            
+            const files = Array.from(event.dataTransfer.files).filter(file => 
+                file.name.endsWith('.html') || file.name.endsWith('.htm')
+            );
+            
+            if (files.length > 0) {
+                handleFiles(files);
+            } else {
+                alert('Please drop HTML files only.');
+            }
+        }
+
+        // Handle directory input (webkitdirectory)
+        function handleDirectory(fileList) {
+            const htmlFiles = Array.from(fileList).filter(file => 
+                file.name.endsWith('.html') || file.name.endsWith('.htm')
+            );
+            
+            if (htmlFiles.length > 0) {
+                handleFiles(htmlFiles);
+            } else {
+                alert('No HTML files found in the selected directory.');
+            }
+        }
+
+        // Process selected files - MODIFIED to show strategy review modal
+        async function handleFiles(files) {
+            const status = document.getElementById('processingStatus');
+            const fileList = document.getElementById('fileList');
+            
+            status.classList.add('show');
+            fileList.innerHTML = '';
+            
+            // Group files by strategy name (based on folder structure or base name)
+            const strategyGroups = {};
+            
+            for (const file of files) {
+                // Extract strategy name from file path or name
+                const pathParts = file.webkitRelativePath ? file.webkitRelativePath.split('/') : [file.name];
+                const folderName = pathParts.length > 1 ? pathParts[pathParts.length - 2] : 'Default';
+                const baseName = file.name.replace(/\.(html|htm)$/i, '').replace(/(stats|charts|trades|formula|settings|symbols|montecarlo)$/i, '');
+                
+                // Use folder name as strategy identifier
+                const strategyKey = folderName;
+                
+                if (!strategyGroups[strategyKey]) {
+                    strategyGroups[strategyKey] = {
+                        name: strategyKey,
+                        files: {},
+                        metrics: {},
+                        pnlData: '',
+                        formulaData: '',
+                        settingsData: '',
+                        symbolsData: ''
+                    };
+                }
+                
+                // Categorize file type
+                const fileName = file.name.toLowerCase();
+                if (fileName.includes('stats')) {
+                    strategyGroups[strategyKey].files.stats = file;
+                } else if (fileName.includes('charts')) {
+                    strategyGroups[strategyKey].files.charts = file;
+                } else if (fileName.includes('formula')) {
+                    strategyGroups[strategyKey].files.formula = file;
+                } else if (fileName.includes('settings')) {
+                    strategyGroups[strategyKey].files.settings = file;
+                } else if (fileName.includes('symbols')) {
+                    strategyGroups[strategyKey].files.symbols = file;
+                } else {
+                    strategyGroups[strategyKey].files.other = file;
+                }
+            }
+            
+            console.log('Strategy groups found:', Object.keys(strategyGroups));
+            
+            // Reset pending strategies for review
+            pendingStrategies = [];
+            
+            // Process each strategy group
+            for (const [strategyName, group] of Object.entries(strategyGroups)) {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>Strategy: ${strategyName}</span>
+                    <span class="file-status">Processing...</span>
+                `;
+                fileList.appendChild(fileItem);
+                
+                try {
+                    let hasData = false;
+                    
+                    // Process stats file for metrics
+                    if (group.files.stats) {
+                        const statsContent = await readFileContent(group.files.stats);
+                        const statsData = parseAmiBrokerHTML(statsContent, group.files.stats.name);
+                        if (statsData && statsData.metrics) {
+                            group.metrics = statsData.metrics;
+                            hasData = true;
+                            console.log('Extracted ' + Object.keys(statsData.metrics).length + ' metrics from stats file');
+                        }
+                    }
+                    
+                    // Process charts file for PnL data
+                    if (group.files.charts) {
+                        const chartsContent = await readFileContent(group.files.charts);
+                        const chartsData = parseAmiBrokerHTML(chartsContent, group.files.charts.name);
+                        if (chartsData && chartsData.pnlData) {
+                            group.pnlData = chartsData.pnlData;
+                            hasData = true;
+                            console.log('Extracted PnL data from charts file');
+                        }
+                    }
+                    
+                    // Process formula file
+                    if (group.files.formula) {
+                        const formulaContent = await readFileContent(group.files.formula);
+                        group.formulaData = extractFormulaFromHTML(formulaContent);
+                        if (group.formulaData) {
+                            hasData = true;
+                            console.log('Extracted formula data');
+                        }
+                    }
+                    
+                    // Process settings file
+                    if (group.files.settings) {
+                        const settingsContent = await readFileContent(group.files.settings);
+                        group.settingsData = extractSettingsFromHTML(settingsContent);
+                        if (group.settingsData) {
+                            hasData = true;
+                            console.log('Extracted settings data:', group.settingsData);
+                        }
+                    }
+                    
+                    // Process symbols file
+                    if (group.files.symbols) {
+                        const symbolsContent = await readFileContent(group.files.symbols);
+                        group.symbolsData = extractSymbolsFromHTML(symbolsContent);
+                        if (group.symbolsData && group.symbolsData.length > 0) {
+                            hasData = true;
+                            console.log('Extracted ' + group.symbolsData.length + ' symbols');
+                        }
+                    }
+                    
+                    // Process other files if no stats/charts found
+                    if (!hasData && group.files.other) {
+                        const otherContent = await readFileContent(group.files.other);
+                        const otherData = parseAmiBrokerHTML(otherContent, group.files.other.name);
+                        if (otherData) {
+                            if (otherData.metrics) group.metrics = otherData.metrics;
+                            if (otherData.pnlData) group.pnlData = otherData.pnlData;
+                            hasData = true;
+                        }
+                    }
+                    
+                    if (hasData) {
+                        // Add to pending strategies for review
+                        pendingStrategies.push({
+                            originalName: strategyName,
+                            name: strategyName, // Will be editable in modal
+                            metrics: group.metrics,
+                            pnlData: group.pnlData,
+                            formulaData: group.formulaData,
+                            settingsData: group.settingsData,
+                            symbolsData: group.symbolsData,
+                            fileCount: Object.keys(group.files).length,
+                            hasStats: !!group.files.stats,
+                            hasCharts: !!group.files.charts,
+                            hasFormula: !!group.files.formula,
+                            hasSettings: !!group.files.settings,
+                            hasSymbols: !!group.files.symbols
+                        });
+                        
+                        const metricsCount = Object.keys(group.metrics).length;
+                        const hasPnL = group.pnlData && group.pnlData.trim();
+                        const hasFormula = group.formulaData && group.formulaData.trim();
+                        const hasSettings = group.settingsData && 
+                            (Object.keys(group.settingsData.basic || {}).length > 0 || 
+                             Object.keys(group.settingsData.parameters || {}).length > 0);
+                        const hasSymbols = group.symbolsData && group.symbolsData.length > 0;
+                        
+                        let statusText = 'Success: ' + metricsCount + ' metrics';
+                        if (hasPnL) statusText += ' + PnL';
+                        if (hasFormula) statusText += ' + Formula';
+                        if (hasSettings) {
+                            const settingsCount = Object.keys(group.settingsData.basic || {}).length + 
+                                                 Object.keys(group.settingsData.parameters || {}).length;
+                            statusText += ' + ' + settingsCount + ' settings';
+                        }
+                        if (hasSymbols) statusText += ' + ' + group.symbolsData.length + ' symbols';
+                        
+                        fileItem.querySelector('.file-status').textContent = statusText;
+                        fileItem.querySelector('.file-status').classList.add('success');
+                    } else {
+                        fileItem.querySelector('.file-status').textContent = 'No data found';
+                        fileItem.querySelector('.file-status').classList.add('error');
+                    }
+                } catch (error) {
+                    console.error('Error processing strategy:', error);
+                    fileItem.querySelector('.file-status').textContent = 'Error: ' + error.message;
+                    fileItem.querySelector('.file-status').classList.add('error');
+                }
+            }
+            
+            // Hide processing status after a delay and show strategy modal
+            setTimeout(() => {
+                status.classList.remove('show');
+                
+                // Show strategy review modal if we have pending strategies
+                if (pendingStrategies.length > 0) {
+                    showStrategyModal();
+                }
+            }, 2000);
+        }
+
+        // Show strategy review modal
+        function showStrategyModal() {
+            const modal = document.getElementById('strategyModal');
+            const strategyList = document.getElementById('strategyList');
+            const strategyCount = document.getElementById('strategyCount');
+            
+            strategyCount.textContent = pendingStrategies.length;
+            
+            // Clear and populate strategy list
+            strategyList.innerHTML = '';
+            
+            pendingStrategies.forEach((strategy, index) => {
+                const strategyItem = document.createElement('div');
+                strategyItem.className = 'strategy-item';
+                
+                let detailsHTML = '<div class="detail-item">📊 ' + Object.keys(strategy.metrics).length + ' metrics</div>';
+                if (strategy.pnlData) detailsHTML += '<div class="detail-item">📈 PnL data</div>';
+                if (strategy.formulaData) detailsHTML += '<div class="detail-item">📝 Formula</div>';
+                if (strategy.settingsData && 
+                    (Object.keys(strategy.settingsData.basic || {}).length > 0 || 
+                     Object.keys(strategy.settingsData.parameters || {}).length > 0)) {
+                    const settingsCount = Object.keys(strategy.settingsData.basic || {}).length + 
+                                         Object.keys(strategy.settingsData.parameters || {}).length;
+                    detailsHTML += '<div class="detail-item">⚙️ ' + settingsCount + ' settings</div>';
+                }
+                if (strategy.symbolsData && strategy.symbolsData.length > 0) {
+                    detailsHTML += '<div class="detail-item">🏷️ ' + strategy.symbolsData.length + ' symbols</div>';
+                }
+                detailsHTML += '<div class="detail-item">📁 ' + strategy.fileCount + ' files</div>';
+                
+                strategyItem.innerHTML = `
+                    <div class="strategy-header">
+                        <div class="strategy-info">
+                            <input type="text" class="strategy-name-input" value="${strategy.name}" 
+                                   data-index="${index}" onchange="updateStrategyName(${index}, this.value)"
+                                   placeholder="Enter strategy name...">
+                            <div class="strategy-details">
+                                ${detailsHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                strategyList.appendChild(strategyItem);
+            });
+            
+            modal.classList.add('show');
+            
+            // Focus on first input
+            setTimeout(() => {
+                const firstInput = strategyList.querySelector('.strategy-name-input');
+                if (firstInput) {
+                    firstInput.focus();
+                    firstInput.select();
+                }
+            }, 100);
+        }
+
+        // Update strategy name in pending list
+        function updateStrategyName(index, newName) {
+            if (pendingStrategies[index]) {
+                pendingStrategies[index].name = newName.trim() || pendingStrategies[index].originalName;
+            }
+        }
+
+        // Close strategy modal
+        function closeStrategyModal() {
+            document.getElementById('strategyModal').classList.remove('show');
+            pendingStrategies = []; // Clear pending strategies
+        }
+
+        // Confirm strategies and add them to reports
+        function confirmStrategies() {
+            if (pendingStrategies.length === 0) return;
+            
+            // Add all strategies to reports using existing main.js structure
+            pendingStrategies.forEach(strategy => {
+                const report = {
+                    name: strategy.name,
+                    metrics: strategy.metrics,
+                    pnlData: strategy.pnlData,
+                    formulaData: strategy.formulaData || '',
+                    settingsData: strategy.settingsData || { basic: {}, parameters: {} },
+                    symbolsData: strategy.symbolsData || []
+                };
+                
+                if (typeof reports !== 'undefined') {
+                    reports.push(report);
+                }
+            });
+            
+            console.log('Added ' + pendingStrategies.length + ' strategies to reports');
+            
+            // Update displays using existing functions from main.js
+            if (reports && reports.length > 0) {
+                if (typeof updateComparison === 'function') {
+                    updateComparison();
+                }
+                if (typeof updateReportList === 'function') {
+                    updateReportList();
+                }
+                
+                // Make sure comparison section is visible
+                const comparisonSection = document.getElementById('comparisonSection');
+                const emptyState = document.getElementById('emptyState');
+                
+                if (comparisonSection && emptyState) {
+                    comparisonSection.classList.add('active');
+                    emptyState.style.display = 'none';
+                }
+            }
+            
+            // Close modal and clear pending strategies
+            closeStrategyModal();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('strategyModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStrategyModal();
+            }
+        });
+
+	// Handle Enter key in strategy name inputs to confirm all strategies
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.classList.contains('strategy-name-input')) {
+                // First update the current strategy name
+                const currentIndex = parseInt(e.target.dataset.index);
+                if (!isNaN(currentIndex)) {
+                    updateStrategyName(currentIndex, e.target.value);
+                }
+                
+                // Then confirm all strategies
+                confirmStrategies();
+            }
+        });
+
+        // Read file content
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        // Parse Amibroker HTML content - handles both stats and charts files
+        function parseAmiBrokerHTML(htmlContent, fileName) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                
+                // Extract strategy name from filename
+                const strategyName = fileName.replace(/\.html?$/i, '').replace(/[_-]/g, ' ');
+                
+                // Create report object
+                const report = {
+                    name: strategyName,
+                    metrics: {},
+                    pnlData: ''
+                };
+                
+                // Check if this is a stats.html file (has statistics table)
+                if (fileName.toLowerCase().includes('stats') || doc.body.textContent.includes('Statistics')) {
+                    // First try table-based extraction
+                    const rows = doc.querySelectorAll('tr');
+                    
+                    for (const row of rows) {
+                        const th = row.querySelector('th');
+                        const tds = row.querySelectorAll('td');
+                        
+                        if (th && tds.length >= 1) {
+                            const metricName = th.textContent.trim();
+                            const value = tds[0].textContent.trim(); // First TD is "All trades" column
+                            
+                            // Direct mapping of known metrics (using same logic as existing parseReport function)
+                            switch (metricName) {
+                                case 'Net Profit':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Net Profit'] = value;
+                                    }
+                                    break;
+                                case 'Net Profit %':
+                                    if (value && value !== '0.00%') {
+                                        report.metrics['Net Profit %'] = value;
+                                    }
+                                    break;
+                                case 'Annual Return %':
+                                    if (value && value !== '0.00%') {
+                                        report.metrics['Annual Return %'] = value;
+                                    }
+                                    break;
+                                case 'Initial capital':
+                                    if (value) {
+                                        report.metrics['Initial capital'] = value;
+                                    }
+                                    break;
+                                case 'Ending capital':
+                                    if (value) {
+                                        report.metrics['Ending capital'] = value;
+                                    }
+                                    break;
+                                case 'Exposure %':
+                                    if (value) {
+                                        report.metrics['Exposure %'] = value;
+                                    }
+                                    break;
+                                case 'All trades':
+                                    if (value && value !== '0') {
+                                        report.metrics['Total Trades'] = value;
+                                    }
+                                    break;
+                                case 'Winners':
+                                    if (value) {
+                                        const number = value.split(' ')[0];
+                                        if (number && number !== '0') {
+                                            report.metrics['Winners'] = number;
+                                        }
+                                    }
+                                    break;
+                                case 'Losers':
+                                    if (value) {
+                                        const number = value.split(' ')[0];
+                                        if (number && number !== '0') {
+                                            report.metrics['Losers'] = number;
+                                        }
+                                    }
+                                    break;
+                                case 'Avg. Profit/Loss':
+                                    if (value && !value.includes('nan') && value !== '0.00') {
+                                        report.metrics['Avg. Profit/Loss'] = value;
+                                    }
+                                    break;
+                                case 'Avg. Profit/Loss %':
+                                    if (value && !value.includes('nan') && value !== '0.00%') {
+                                        report.metrics['Avg. Profit/Loss %'] = value;
+                                    }
+                                    break;
+                                case 'Profit Factor':
+                                    if (value && !value.includes('nan')) {
+                                        report.metrics['Profit Factor'] = value;
+                                    }
+                                    break;
+                                case 'Max. system drawdown':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Max. system drawdown'] = value;
+                                    }
+                                    break;
+                                case 'Max. system % drawdown':
+                                    if (value && value !== '0.00%') {
+                                        report.metrics['Max. system % drawdown'] = value;
+                                    }
+                                    break;
+                                case 'Sharpe Ratio of trades':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Sharpe Ratio of trades'] = value;
+                                    }
+                                    break;
+                                case 'Recovery Factor':
+                                    if (value && !value.includes('nan')) {
+                                        report.metrics['Recovery Factor'] = value;
+                                    }
+                                    break;
+                                case 'CAR/MaxDD':
+                                    if (value && !value.includes('nan')) {
+                                        report.metrics['CAR/MaxDD'] = value;
+                                    }
+                                    break;
+                                case 'Payoff Ratio':
+                                    if (value && !value.includes('nan')) {
+                                        report.metrics['Payoff Ratio'] = value;
+                                    }
+                                    break;
+                                case 'Risk-Reward Ratio':
+                                    if (value && !value.includes('nan')) {
+                                        report.metrics['Risk-Reward Ratio'] = value;
+                                    }
+                                    break;
+                                case 'Ulcer Index':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Ulcer Index'] = value;
+                                    }
+                                    break;
+                                case 'Avg. Bars Held':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Avg. Bars Held'] = value;
+                                    }
+                                    break;
+                                case 'Total Profit':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Total Profit'] = value;
+                                    }
+                                    break;
+                                case 'Total Loss':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Total Loss'] = value;
+                                    }
+                                    break;
+                                case 'Avg. Profit':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Avg. Profit'] = value;
+                                    }
+                                    break;
+                                case 'Avg. Loss':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Avg. Loss'] = value;
+                                    }
+                                    break;
+                                case 'Largest win':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Largest win'] = value;
+                                    }
+                                    break;
+                                case 'Largest loss':
+                                    if (value && value !== '0.00') {
+                                        report.metrics['Largest loss'] = value;
+                                    }
+                                    break;
+                                case 'Transaction costs':
+                                    if (value) {
+                                        report.metrics['Transaction costs'] = value;
+                                    }
+                                    break;
+                                case 'K-Ratio':
+                                    if (value && !value.includes('nan')) {
+                                        report.metrics['K-Ratio'] = value;
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    
+                    // Fallback: Use regex-based parsing for metrics that might be missed by table parsing
+                    // This uses the same patterns as the original parseReport function
+                    const normalizedText = htmlContent.replace(/\n/g, ' ').replace(/\t/g, ' ').replace(/\s+/g, ' ').trim();
+                    
+                    // Additional patterns for commonly missed metrics
+                    const fallbackPatterns = [
+                        { name: 'Avg. Profit/Loss', pattern: /Avg\. Profit\/Loss\s+([\d.-]+)(?:\s+-nan\(ind\))?\s+([\d.-]+)/ },
+                        { name: 'Avg. Profit/Loss %', pattern: /Avg\. Profit\/Loss %\s+([\d.-]+%)/ },
+                        { name: 'Max. trade drawdown', pattern: /Max\. trade drawdown\s+([\d.-]+)/ },
+                        { name: 'Max. trade % drawdown', pattern: /Max\. trade % drawdown\s+([\d.-]+%)/ }
+                    ];
+                    
+                    fallbackPatterns.forEach(({ name, pattern }) => {
+                        // Only use fallback if we didn't already get this metric from table parsing
+                        if (!report.metrics[name]) {
+                            const match = normalizedText.match(pattern);
+                            if (match) {
+                                let value = match[1];
+                                // If we have multiple capture groups, try to get the first valid one
+                                if (match[2] && (value === 'nan' || value.includes('nan') || value === '0' || value === '0.00')) {
+                                    value = match[2];
+                                }
+                                
+                                // Only store valid values
+                                if (value && value !== 'nan' && value !== '-nan(ind)' && 
+                                    value !== '0.00' && !value.includes('nan') && value !== '-inf') {
+                                    report.metrics[name] = value;
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Check if this is a charts.html file (has PnL table)
+                if (fileName.toLowerCase().includes('charts') || doc.body.textContent.includes('Profit Table(In Thousands)')) {
+                    report.pnlData = extractPnLFromChartsHTML(doc);
+                }
+                
+                console.log('Extracted from ' + fileName + ':', Object.keys(report.metrics).length, 'metrics,', report.pnlData ? 'PnL data found' : 'no PnL data');
+                
+                return (Object.keys(report.metrics).length > 0 || report.pnlData) ? report : null;
+                
+            } catch (error) {
+                console.error('Error parsing HTML:', error);
+                return null;
+            }
+        }
+
+        // Extract PnL data from charts.html file
+        function extractPnLFromChartsHTML(doc) {
+            try {
+                // Look for the "Profit Table(In Thousands)" table
+                const tables = doc.querySelectorAll('table');
+                
+                for (const table of tables) {
+                    const rows = table.querySelectorAll('tr');
+                    let pnlData = '';
+                    
+                    // Check if this table has months as headers (Jan, Feb, Mar, etc.)
+                    const headerRow = rows[0];
+                    if (headerRow && headerRow.textContent.includes('Jan') && headerRow.textContent.includes('Feb')) {
+                        
+                        // Process each data row (skip header)
+                        for (let i = 1; i < rows.length; i++) {
+                            const row = rows[i];
+                            const cells = row.querySelectorAll('td');
+                            
+                            if (cells.length >= 13) { // Year + 12 months + yearly total
+                                const yearCell = cells[0];
+                                const yearText = yearCell.textContent.trim();
+                                
+                                // Skip if this is not a year row (like "Avg" row)
+                                if (!yearText.match(/^\d{4}$/) && yearText !== 'Avg') continue;
+                                
+                                let rowData = '**' + yearText + '**';
+                                
+                                // Extract monthly values (cells 1-12)
+                                for (let j = 1; j <= 12; j++) {
+                                    if (j < cells.length) {
+                                        let cellValue = cells[j].textContent.trim();
+                                        
+                                        // Clean up the cell value
+                                        if (cellValue === 'N/A' || cellValue === '-') {
+                                            // Skip N/A values for incomplete years
+                                        } else if (cellValue.includes('K')) {
+                                            // Already in the right format
+                                            rowData += cellValue + ' ';
+                                        }
+                                    }
+                                }
+                                
+                                // Add yearly total if available
+                                if (cells.length > 13) {
+                                    const yearlyTotal = cells[cells.length - 1].textContent.trim();
+                                    if (yearlyTotal && yearlyTotal.includes('K')) {
+                                        rowData += '**' + yearlyTotal;
+                                    }
+                                }
+                                
+                                // Only add if we have meaningful data
+                                if (rowData.includes('K')) {
+                                    pnlData += rowData + '\n';
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (pnlData) {
+                        console.log('Extracted PnL data from charts.html:', pnlData);
+                        return pnlData.trim();
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error extracting PnL from charts:', error);
+                return null;
+            }
+        }
+    </script>
+</body>
+</html>
